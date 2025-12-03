@@ -34,8 +34,8 @@ export class FFmpegService {
             onProgress(Math.round(progress * 100));
         });
 
-        // Extract audio: -vn (no video), -acodec libmp3lame, -q:a 2 (high quality)
-        await this.ffmpeg.exec(['-i', inputName, '-vn', '-acodec', 'libmp3lame', '-q:a', '2', outputName]);
+        // Extract audio: -vn (no video), -ac 1 (mono), -ar 16000 (16kHz), -b:a 32k (low bitrate for speech)
+        await this.ffmpeg.exec(['-i', inputName, '-vn', '-ac', '1', '-ar', '16000', '-acodec', 'libmp3lame', '-b:a', '32k', outputName]);
 
         const data = await this.ffmpeg.readFile(outputName);
         // Cast to any to avoid SharedArrayBuffer vs ArrayBuffer type mismatch

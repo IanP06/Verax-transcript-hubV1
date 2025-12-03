@@ -6,6 +6,43 @@ import { groqService } from '../services/groqService';
 import { exportService } from '../services/exportService';
 import { FileDown } from 'lucide-react';
 
+const EXECUTIVE_SUMMARY_PROMPT = `Necesito que proceses esta entrevista y redactes un detalle completo de la declaración del entrevistado, con un formato uniforme y técnico, aplicable a siniestros de tránsito, robos (totales o parciales), incendios o daños materiales.
+El texto debe organizarse según la siguiente estructura y normas:
+
+Estructura del Informe de Declaración:
+
+Identificación del siniestro:
+Número de siniestro, fecha, lugar de ocurrencia, tipo de siniestro (choque, robo, incendio, daño), vehículo o bien asegurado, asegurado, póliza, y cualquier otro dato relevante de identificación.
+
+Contexto previo al hecho:
+Situación general previa (viaje, rutina, actividad, uso del bien, horario, acompañantes, circunstancias del entorno). En caso de robo o incendio, indicar cómo y dónde se encontraba el bien o la persona asegurada.
+
+Circunstancias previas al evento:
+Condiciones de tránsito, climáticas o del entorno, estado del lugar, maniobras previas (en siniestros viales), medidas de seguridad adoptadas (en robos/incendios), manifestaciones o conductas previas del asegurado.
+
+Descripción del hecho o evento:
+Relato cronológico y completo de cómo ocurrió el siniestro.
+
+En choques: mecánica del accidente, puntos de impacto, daños visibles, intervención de terceros.
+
+En robos: modalidad del hecho (violencia, forzamiento, descuido, etc.), elementos sustraídos, participación policial.
+
+En incendios: origen presunto, propagación, daños ocasionados, intervención de bomberos.
+
+En daños materiales: circunstancias del daño, causas posibles, momento de detección.
+
+Consecuencias inmediatas:
+Lesiones, asistencia médica, denuncia policial, intervención de bomberos, remolque o grúa, traslado, medidas adoptadas luego del hecho.
+
+Manifestaciones sobre terceros o testigos:
+Identificación de otras personas involucradas (conductores, acompañantes, testigos, vecinos, personal policial o de emergencias). Descripción de su participación o testimonio.
+
+Otros detalles relevantes:
+Comentarios adicionales, aclaraciones del entrevistado, observaciones sobre documentación, reparaciones, compras, actuaciones posteriores, percepciones o valoraciones personales.
+
+Conclusión preliminar sobre la declaración:
+Evaluación técnica de la coherencia, consistencia y correspondencia del relato con los daños o evidencias verificables. Considerar si resulta verosímil, incompleta, o inconsistente; indicar si surgen indicios de fraude o no, conforme a lo dispuesto por la Ley 17.418 (arts. 46-48)`;
+
 export const Dashboard: React.FC = () => {
     const [file, setFile] = useState<File | null>(null);
     const [status, setStatus] = useState<'idle' | 'extracting' | 'transcribing' | 'formatting' | 'analyzing' | 'completed'>('idle');
@@ -92,8 +129,8 @@ export const Dashboard: React.FC = () => {
                     </div>
 
                     <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                        <button className="btn btn-secondary" onClick={() => performAnalysis('Genera un resumen ejecutivo de este siniestro.')}>
-                            Generar Resumen
+                        <button className="btn btn-secondary" onClick={() => performAnalysis(EXECUTIVE_SUMMARY_PROMPT)}>
+                            Generar Informe Técnico
                         </button>
                         <button className="btn btn-secondary" onClick={() => performAnalysis('Extrae una cronología detallada de los hechos con horas y eventos.')}>
                             Extraer Cronología
