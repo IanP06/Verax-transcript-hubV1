@@ -43,6 +43,51 @@ Comentarios adicionales, aclaraciones del entrevistado, observaciones sobre docu
 Conclusión preliminar sobre la declaración:
 Evaluación técnica de la coherencia, consistencia y correspondencia del relato con los daños o evidencias verificables. Considerar si resulta verosímil, incompleta, o inconsistente; indicar si surgen indicios de fraude o no, conforme a lo dispuesto por la Ley 17.418 (arts. 46-48)`;
 
+const ACTA_DECLARATORIA_PROMPT = `1. Redactar acta declaratoria del entrevistado a partir de la transcripción.
+
+2. La narración debe redactarse en tercera persona, estilo formal, administrativo, sin opiniones ni interpretación subjetiva. Comenzando siempre cada párrafo con un "Que,..."seguido de una coma o descripción directa; funciona como conector administrativo, por lo que es obligatorio para mantener el estilo del acta. Ejemplo:
+“Que posteriormente…”
+ 
+“Que el asegurado indicó…”
+
+“Que durante la entrevista…”
+
+“Que la unidad presentaba…”
+
+Etc.
+
+3. El relato de los hechos debe ser:
+
+Ordenado cronológicamente.
+
+Claro, completo y coherente.
+
+Sin repeticiones, sin muletillas, sin referencias textuales a diálogos (“me dijo”, “yo dije”, etc.).
+
+Siempre transformando la conversación del .txt en un relato formal.
+
+4. Debe incluir, según corresponda:
+
+Descripción de los hechos del siniestro.
+
+Lugar, fecha, horario aproximado.
+
+Si hubo robo: sustraído, modalidad, cuántos delincuentes, armas, etc.
+
+Si hubo choque: dirección, posición de los vehículos, daños, intercambios de datos.
+
+Datos del vehículo: kilometraje, uso habitual, llaves, estado previo.
+
+Si intervino policía, 911, Strix, aplicación, etc.
+
+Si es un caso de aplicación (Uber, Didi, Rappi), mencionar rol y si hizo o no denuncia en la plataforma.
+
+5. Nunca inventar datos que no estén en el relato.
+
+6. Nunca copiar frases textuales de la entrevista; siempre reformular en estilo de acta.
+
+7. Nunca incluir preguntas ni respuestas; solo el relato final.`;
+
 export const Dashboard: React.FC = () => {
     const [file, setFile] = useState<File | null>(null);
     const [status, setStatus] = useState<'idle' | 'extracting' | 'transcribing' | 'formatting' | 'analyzing' | 'completed'>('idle');
@@ -131,6 +176,9 @@ export const Dashboard: React.FC = () => {
                     <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                         <button className="btn btn-secondary" onClick={() => performAnalysis(EXECUTIVE_SUMMARY_PROMPT)}>
                             Generar Informe Técnico
+                        </button>
+                        <button className="btn btn-secondary" onClick={() => performAnalysis(ACTA_DECLARATORIA_PROMPT)}>
+                            Generar Acta Declaratoria
                         </button>
                         <button className="btn btn-secondary" onClick={() => performAnalysis('Extrae una cronología detallada de los hechos con horas y eventos.')}>
                             Extraer Cronología
