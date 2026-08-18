@@ -1,20 +1,6 @@
 import React from 'react';
-import { useAuth } from '../../auth/AuthContext';
-import { useNavigate } from 'react-router-dom';
 
 export const Navbar: React.FC = () => {
-    const { signOut } = useAuth();
-    const navigate = useNavigate();
-
-    const handleLogout = async () => {
-        try {
-            await signOut();
-            navigate('/login');
-        } catch (error) {
-            console.error("Error signing out:", error);
-        }
-    };
-
     return (
         <nav style={{
             height: '64px',
@@ -31,10 +17,6 @@ export const Navbar: React.FC = () => {
                     <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Análisis Inteligente de Siniestros</span>
                 </div>
             </div>
-
-            <button onClick={handleLogout} className="btn btn-ghost" style={{ fontSize: '0.875rem' }}>
-                Cerrar Sesión
-            </button>
         </nav>
     );
 };

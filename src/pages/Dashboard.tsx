@@ -4,7 +4,7 @@ import { ProcessingView } from '../components/upload/ProcessingView';
 import { ffmpegService } from '../services/ffmpegService';
 import { groqService } from '../services/groqService';
 import { exportService } from '../services/exportService';
-import { FileDown } from 'lucide-react';
+import { FileDown, Key, Check } from 'lucide-react';
 
 const EXECUTIVE_SUMMARY_PROMPT = `Necesito que proceses esta entrevista y redactes un detalle completo de la declaración del entrevistado, con un formato uniforme y técnico, aplicable a siniestros de tránsito, robos (totales o parciales), incendios o daños materiales.
 El texto debe organizarse según la siguiente estructura y normas:
@@ -93,22 +93,22 @@ export const Dashboard: React.FC = () => {
     const [status, setStatus] = useState<'idle' | 'extracting' | 'transcribing' | 'formatting' | 'analyzing' | 'completed'>('idle');
     const [progress, setProgress] = useState(0);
     const [transcription, setTranscription] = useState<string>('');
-    const [apiKey] = useState(import.meta.env.VITE_GROQ_API_KEY || localStorage.getItem('groq_api_key') || '');
+    const [apiKey, setApiKey] = useState<string>(
+        import.meta.env.VITE_GROQ_API_KEY || localStorage.getItem('groq_api_key') || ''
+    );
+    const [showKeyModal, setShowKeyModal] = useState<boolean>(false);
+    const [tempKey, setTempKey] = useState<string>('');
+    const [pendingFile, setPendingFile] = useState<File | null>(null);
     const [analysisResult, setAnalysisResult] = useState<string>('');
 
-    const handleFileSelect = async (selectedFile: File) => {
-        if (!apiKey) {
-            alert('API Key no configurada. Contacte al administrador.');
-            return;
-        }
-
+    const startProcessing = async (selectedFile: File, activeKey: string) => {
         setFile(selectedFile);
         setStatus('extracting');
         setProgress(0);
         setAnalysisResult('');
 
         try {
-            groqService.initialize(apiKey);
+            groqService.initialize(activeKey);
 
             let audioBlob: Blob | File = selectedFile;
 
@@ -130,8 +130,37 @@ export const Dashboard: React.FC = () => {
         } catch (error: any) {
             console.error(error);
             const errorMessage = error instanceof Error ? error.message : String(error);
-            alert(`Error: ${errorMessage}`);
+            alert(`Error en el procesamiento: ${errorMessage}`);
             setStatus('idle');
+        }
+    };
+
+    const handleFileSelect = async (selectedFile: File) => {
+        const currentKey = apiKey || import.meta.env.VITE_GROQ_API_KEY || localStorage.getItem('groq_api_key') || '';
+        if (!currentKey) {
+            setPendingFile(selectedFile);
+            setTempKey('');
+            setShowKeyModal(true);
+            return;
+        }
+
+        await startProcessing(selectedFile, currentKey);
+    };
+
+    const handleSaveKey = () => {
+        const trimmed = tempKey.trim();
+        if (!trimmed) {
+            alert('Por favor ingresa una API Key válida.');
+            return;
+        }
+        localStorage.setItem('groq_api_key', trimmed);
+        setApiKey(trimmed);
+        setShowKeyModal(false);
+
+        if (pendingFile) {
+            const f = pendingFile;
+            setPendingFile(null);
+            startProcessing(f, trimmed);
         }
     };
 
@@ -139,6 +168,8 @@ export const Dashboard: React.FC = () => {
         if (!transcription) return;
         setAnalysisResult('Analizando...');
         try {
+            const currentKey = apiKey || import.meta.env.VITE_GROQ_API_KEY || localStorage.getItem('groq_api_key') || '';
+            groqService.initialize(currentKey);
             const result = await groqService.analyzeText(transcription, prompt);
             setAnalysisResult(result);
         } catch (error: any) {
@@ -150,12 +181,98 @@ export const Dashboard: React.FC = () => {
 
     return (
         <div className="fade-in">
-            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <header style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                 <div>
                     <h2 style={{ fontSize: '2rem', fontWeight: '700', marginBottom: '0.5rem' }}>Panel de Control</h2>
                     <p style={{ color: 'var(--color-text-muted)' }}>Sube tus grabaciones para comenzar el análisis.</p>
                 </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <button
+                        className="btn btn-ghost"
+                        style={{ border: '1px solid var(--color-border)', padding: '0.5rem 1rem', fontSize: '0.875rem' }}
+                        onClick={() => {
+                            setTempKey(apiKey);
+                            setShowKeyModal(true);
+                        }}
+                    >
+                        <Key size={16} style={{ color: apiKey ? 'var(--color-success)' : 'var(--color-warning)' }} />
+                        {apiKey ? 'API Key Configurada' : 'Configurar Groq Key'}
+                    </button>
+                </div>
             </header>
+
+            {/* Key Configuration Modal */}
+            {showKeyModal && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 1000,
+                    padding: '1rem'
+                }}>
+                    <div className="card" style={{ maxWidth: '480px', width: '100%', padding: '2rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                            <div style={{
+                                width: '40px',
+                                height: '40px',
+                                borderRadius: '50%',
+                                backgroundColor: 'rgba(185, 54, 50, 0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'var(--color-primary)'
+                            }}>
+                                <Key size={20} />
+                            </div>
+                            <div>
+                                <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Configurar Groq API Key</h3>
+                                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Para transcribir y analizar entrevistas sin restricciones</p>
+                            </div>
+                        </div>
+
+                        <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginBottom: '1.25rem' }}>
+                            Ingresa tu clave de API de Groq (comienza con <code>gsk_...</code>). Se guardará de manera local y segura en tu navegador.
+                        </p>
+
+                        <div style={{ marginBottom: '1.5rem' }}>
+                            <input
+                                type="password"
+                                value={tempKey}
+                                onChange={(e) => setTempKey(e.target.value)}
+                                placeholder="gsk_..."
+                                style={{
+                                    width: '100%',
+                                    padding: '0.75rem 1rem',
+                                    borderRadius: 'var(--radius-md)',
+                                    border: '1px solid var(--color-border)',
+                                    backgroundColor: 'var(--color-background)',
+                                    color: 'var(--color-text-main)',
+                                    fontSize: '0.9rem'
+                                }}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                            <button
+                                className="btn btn-ghost"
+                                onClick={() => {
+                                    setShowKeyModal(false);
+                                    setPendingFile(null);
+                                }}
+                            >
+                                Cancelar
+                            </button>
+                            <button className="btn btn-primary" onClick={handleSaveKey}>
+                                <Check size={16} /> Guardar Clave
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {status === 'idle' ? (
                 <UploadZone onFileSelect={handleFileSelect} />
