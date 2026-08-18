@@ -36,10 +36,17 @@ Sigue estos pasos para publicar **Verax Transcript Hub** en internet.
     *   **Root Directory**: `./` (déjalo como está).
 4.  **IMPORTANTE: Variables de Entorno**:
     *   Haz clic en **"Environment Variables"**.
-    *   Agrega una nueva variable:
-        *   **Key**: `VITE_GROQ_API_KEY`
-        *   **Value**: `gsk_...` (Tu clave real de Groq).
-    *   Haz clic en "Add".
+    *   Agrega las siguientes variables (Key y Value correspondientes de tu proyecto Firebase):
+        *   `VITE_GROQ_API_KEY`: Tu clave real de Groq.
+        *   `VITE_FIREBASE_API_KEY`
+        *   `VITE_FIREBASE_AUTH_DOMAIN`
+        *   `VITE_FIREBASE_PROJECT_ID`
+        *   `VITE_FIREBASE_STORAGE_BUCKET`
+        *   `VITE_FIREBASE_MESSAGING_SENDER_ID`
+        *   `VITE_FIREBASE_APP_ID`
+        *   `VITE_FIREBASE_MEASUREMENT_ID` (Opcional)
+    *   **Nota**: Recuerda agregar tu dominio de Vercel (ej: `tu-app.vercel.app`) en la lista de "Authorized Domains" en la consola de Firebase Authentication.
+    *   Haz clic en "Add" para cada una.
 5.  Haz clic en **"Deploy"**.
 
 ### 3. ¡Listo!
